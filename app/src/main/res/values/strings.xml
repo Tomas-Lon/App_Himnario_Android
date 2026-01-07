@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Himnario Esperanza</string>
+
+    <!-- Cambia "HimnarioBeta" por el nombre final, ej: "Himnario Celestial" -->
+    <!-- <string name="app_name">Himnario Celestial</string> -->
+
+    <!-- Cambia "HimnarioBeta" por el nombre final, ej: "Himnario Celestial" -->
+    <!-- <string name="app_name">Himnario Celestial</string> -->
+</resources>

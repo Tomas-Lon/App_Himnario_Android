@@ -1,0 +1,41 @@
+package com.example.himnariobeta
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface HymnDao {
+    // Obtener todos los himnos ordenados por ID
+    @Query("SELECT * FROM hymns ORDER BY id ASC")
+    fun getAllHymns(): Flow<List<HymnEntity>>
+
+    // Buscar por título, letra o ID
+    @Query("SELECT * FROM hymns WHERE title LIKE '%' || :query || '%' OR lyrics LIKE '%' || :query || '%' OR CAST(id AS TEXT) LIKE '%' || :query || '%' ORDER BY id ASC")
+    fun searchHymns(query: String): Flow<List<HymnEntity>>
+
+    // Insertar un himno (útil si necesitaras restaurar datos)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHymn(hymn: HymnEntity)
+
+    // Actualizar un himno completo (para favoritos, notas, etc.)
+    @Update
+    suspend fun updateHymn(hymn: HymnEntity)
+
+    // Actualizar solo la nota personal de un himno
+    @Query("UPDATE hymns SET note = :note WHERE id = :hymnId")
+    suspend fun updateNote(hymnId: Int, note: String)
+
+    // Filtro dinámico por Categoría y Nota Musical
+    // Si el parámetro es NULL, esa parte del filtro se ignora, permitiendo filtrar solo por uno, por los dos, o por ninguno.
+    @Query("""
+        SELECT * FROM hymns 
+        WHERE (:category IS NULL OR category = :category) 
+        AND (:key IS NULL OR musical_key = :key)
+        ORDER BY id ASC
+    """)
+    fun filterHymns(category: String?, key: String?): Flow<List<HymnEntity>>
+}
