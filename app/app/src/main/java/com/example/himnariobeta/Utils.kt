@@ -32,3 +32,31 @@ fun HymnEntity.getSafeLyrics(): String {
         lyrics.cleanHymnText()
     }
 }
+
+/**
+ * Convierte tonalidad española a cifrado americano
+ * SOL -> G, DO -> C, RE -> D, MI -> E, FA -> F, LA -> A, SI -> B
+ */
+fun String?.toAmericanKey(): String? {
+    if (this == null) return null
+    return when (this.uppercase().trim()) {
+        "DO" -> "C"
+        "RE" -> "D"
+        "MI" -> "E"
+        "FA" -> "F"
+        "SOL" -> "G"
+        "LA" -> "A"
+        "SI" -> "B"
+        // Si ya está en formato americano, retornar tal cual
+        else -> this.uppercase().firstOrNull()?.toString()?.let { 
+            if (it in listOf("C", "D", "E", "F", "G", "A", "B")) this else null 
+        }
+    }
+}
+
+/**
+ * Obtiene la tonalidad en formato americano para mostrar
+ */
+fun HymnEntity.getAmericanKey(): String? {
+    return this.musical_key?.toAmericanKey()
+}

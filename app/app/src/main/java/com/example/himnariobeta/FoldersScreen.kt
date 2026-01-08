@@ -102,7 +102,7 @@ fun FoldersScreen(
                 )
             }
 
-            items(noFolderLists, key = { it.listId }) { list ->
+            items(noFolderLists, key = { "nofolder_${it.listId}" }) { list ->
                 AnimatedVisibility(
                     visible = true,
                     enter = fadeIn(animationSpec = tween(300)) + 
@@ -173,7 +173,7 @@ fun FolderScreen(
             }
         } else {
             LazyColumn {
-                items(lists, key = { it.listId }) { list ->
+                items(lists, key = { "folder_${folder.folderId}_${it.listId}" }) { list ->
                     AnimatedVisibility(
                         visible = true,
                         enter = fadeIn(animationSpec = tween(300)) + 

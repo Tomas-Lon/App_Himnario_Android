@@ -30,11 +30,20 @@ interface HymnDao {
     suspend fun updateNote(hymnId: Int, note: String)
 
     // Filtro dinámico por Categoría y Nota Musical
-    // Si el parámetro es NULL, esa parte del filtro se ignora, permitiendo filtrar solo por uno, por los dos, o por ninguno.
+    // Convierte tonalidades españolas a americanas antes de comparar
     @Query("""
         SELECT * FROM hymns 
         WHERE (:category IS NULL OR category = :category) 
-        AND (:key IS NULL OR musical_key = :key)
+        AND (:key IS NULL OR 
+            musical_key = :key OR
+            (musical_key = 'DO' AND :key = 'C') OR
+            (musical_key = 'RE' AND :key = 'D') OR
+            (musical_key = 'MI' AND :key = 'E') OR
+            (musical_key = 'FA' AND :key = 'F') OR
+            (musical_key = 'SOL' AND :key = 'G') OR
+            (musical_key = 'LA' AND :key = 'A') OR
+            (musical_key = 'SI' AND :key = 'B')
+        )
         ORDER BY id ASC
     """)
     fun filterHymns(category: String?, key: String?): Flow<List<HymnEntity>>

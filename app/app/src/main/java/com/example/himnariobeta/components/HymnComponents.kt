@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.himnariobeta.HymnEntity
+import com.example.himnariobeta.getAmericanKey
 import com.example.himnariobeta.getSafeLyrics
 import com.example.himnariobeta.getSafeTitle
 import com.example.himnariobeta.utils.exportHymnAsPdf
@@ -177,11 +178,19 @@ fun HymnItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "${safeId}. ${safeTitle}",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f).padding(start = 8.dp)
-                )
+                Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
+                    Text(
+                        text = "${safeId}. ${safeTitle}",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    hymn.getAmericanKey()?.let { key ->
+                        Text(
+                            text = "Tonalidad: $key",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (showAddButton && onAddToList != null) {
