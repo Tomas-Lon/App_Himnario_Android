@@ -3,14 +3,41 @@
 
 -- Ejemplo 1: Himno 64 - "Cuan gloriosa sera la mañana"
 UPDATE hymns 
-SET musical_notation = '	I        IV      I
+SET musical_notation = '
+	I      IV      I
 Cuan Gloriosa será la mañana,
 	  IV    V           I
 Cuando venga Jesús el Salvador;
 	IV    V              I     vi
 Las naciones unidas como hermanas,
      V		IV       I
-Bienvenida, daremos al Señor.'
+Bienvenida, daremos al Señor.
+
+CORO:
+    IV        I7
+No habrá necesidad
+       IV            V
+De la luz y el resplandor,
+       V       
+Ni el sol dará su luz,
+
+Ni tampoco su calor.
+
+Allí llanto no habrá,
+
+Ni tristeza ni dolor,
+
+Porque entonces Jesús
+
+El Rey del Cielo,
+
+Para siempre
+
+Ser El Consolador.
+
+
+
+'
 WHERE id = 64 OR LOWER(TRIM(title)) LIKE '%cuan gloriosa%';
 
 -- Ejemplo 2: Si tienes "Alabad a Jehová" (ejemplo)

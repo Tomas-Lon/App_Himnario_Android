@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,42 +88,39 @@ fun FilterScreen(
                 }
             }
 
-            // FilterChip Nota Musical - Ahora con lógica funcional
-            Box(modifier = Modifier.weight(1f)) {
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // SELECTOR DE TONALIDAD - Grid de chips
+        Text("Tonalidad:", style = MaterialTheme.typography.titleSmall)
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(4),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        ) {
+            items(viewModel.musicalKeys) { key ->
                 FilterChip(
-                    selected = selectedKey != null,
-                    onClick = { viewModel.toggleKeyMenu() },
-                    label = { Text(selectedKey ?: "Nota Musical") },
-                    trailingIcon = {
-                        if (selectedKey != null) {
-                            Icon(
-                                Icons.Default.Close, 
-                                "Borrar", 
-                                Modifier.clickable { viewModel.clearKey() }
-                            )
+                    selected = selectedKey == key,
+                    onClick = {
+                        if (selectedKey == key) {
+                            viewModel.clearKey()
+                        } else {
+                            viewModel.setKey(key)
                         }
                     },
+                    label = { Text(key) },
                     modifier = Modifier.fillMaxWidth()
                 )
-                
-                DropdownMenu(
-                    expanded = keyMenuExpanded,
-                    onDismissRequest = { viewModel.closeKeyMenu() }
-                ) {
-                    viewModel.musicalKeys.forEach { key ->
-                        DropdownMenuItem(
-                            text = { Text(key) },
-                            onClick = {
-                                viewModel.setKey(key)
-                                viewModel.closeKeyMenu()
-                            }
-                        )
-                    }
-                }
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
         // RESULTADOS
         if (filteredHymns.isEmpty()) {

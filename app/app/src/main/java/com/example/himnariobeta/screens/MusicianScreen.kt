@@ -134,40 +134,115 @@ fun MusicianScreen(viewModel: MusicianViewModel) {
 fun KeySelector(selectedKey: String?, availableKeys: List<String>,
     onKeySelected: (String) -> Unit, onResetToOriginal: () -> Unit) {
     Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        // Sección 1: Nota Original / Transpuesto
+        Surface(
+            color = if (selectedKey == null) 
+                MaterialTheme.colorScheme.tertiaryContainer 
+            else 
+                MaterialTheme.colorScheme.primaryContainer,
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Tonalidad:", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            if (selectedKey != null) {
-                TextButton(onClick = onResetToOriginal) { 
-                    Text("Usar Original", style = MaterialTheme.typography.labelSmall) 
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        modifier = Modifier.size(if (selectedKey == null) 24.dp else 32.dp),
+                        tint = if (selectedKey == null) 
+                            MaterialTheme.colorScheme.onTertiaryContainer 
+                        else 
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (selectedKey == null) "Nota Original" else "¡Transpuesto!",
+                            style = if (selectedKey == null) 
+                                MaterialTheme.typography.labelSmall 
+                            else 
+                                MaterialTheme.typography.labelMedium,
+                            color = if (selectedKey == null) 
+                                MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                            else
+                                MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = if (selectedKey == null) FontWeight.Normal else FontWeight.Bold
+                        )
+                        Text(
+                            text = if (selectedKey == null) 
+                                "Usando tonalidad original de cada himno" 
+                            else 
+                                "Todos los himnos transpuestos a: $selectedKey",
+                            style = if (selectedKey == null) 
+                                MaterialTheme.typography.titleMedium 
+                            else 
+                                MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = if (selectedKey == null) 
+                                MaterialTheme.colorScheme.onTertiaryContainer
+                            else
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                
+                if (selectedKey != null) {
+                    FilledTonalButton(
+                        onClick = onResetToOriginal,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { 
+                        Text("Restaurar a tonalidad original") 
+                    }
                 }
             }
         }
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        
+        Spacer(Modifier.height(16.dp))
+        HorizontalDivider()
+        Spacer(Modifier.height(16.dp))
+        
+        // Sección 2: Transportar a
+        Text(
+            text = "Transportar a:",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(Modifier.height(12.dp))
+        
+        // Grid de tonalidades
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            FilterChip(
-                selected = selectedKey == null,
-                onClick = onResetToOriginal,
-                label = { Text("Original", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) },
-                leadingIcon = if (selectedKey == null) {
-                    { Icon(Icons.Default.Star, null, Modifier.size(18.dp)) }
-                } else null)
-            
-            availableKeys.forEach { key ->
-                val keySimple = key.substringBefore("/")
-                FilterChip(
-                    selected = selectedKey == keySimple,
-                    onClick = { onKeySelected(keySimple) },
-                    label = { Text(key, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium) },
-                    leadingIcon = if (selectedKey == keySimple) {
-                        { Icon(Icons.Default.Star, null, Modifier.size(18.dp)) }
-                    } else null)
+            availableKeys.chunked(4).forEach { rowKeys ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    rowKeys.forEach { key ->
+                        val keySimple = key.substringBefore("/")
+                        FilterChip(
+                            selected = selectedKey == keySimple,
+                            onClick = { onKeySelected(keySimple) },
+                            label = { 
+                                Text(
+                                    text = key,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = if (selectedKey == keySimple) FontWeight.Bold else FontWeight.Medium
+                                )
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    // Rellenar espacios vacíos si la fila no está completa
+                    repeat(4 - rowKeys.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
     }
