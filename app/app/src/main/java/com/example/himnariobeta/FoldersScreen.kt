@@ -1,5 +1,7 @@
 package com.example.himnariobeta
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,18 +45,29 @@ fun FoldersScreen(
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
 
-        items(folders) { folder ->
+        items(folders, key = { it.folderId }) { folder ->
             val listsInFolder = remember(lists) {
                 lists.filter { it.folderId == folder.folderId }
             }
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clickable { onFolderClick(folder) },
-                elevation = CardDefaults.cardElevation(4.dp)
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(animationSpec = tween(300)) + expandVertically(animationSpec = tween(300)),
+                exit = fadeOut(animationSpec = tween(300)) + shrinkVertically(animationSpec = tween(300))
             ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .clickable { onFolderClick(folder) }
+                        .animateContentSize(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
+                        ),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -77,6 +90,7 @@ fun FoldersScreen(
                     }
                 }
             }
+            }
         }
 
         if (noFolderLists.isNotEmpty()) {
@@ -88,15 +102,25 @@ fun FoldersScreen(
                 )
             }
 
-            items(noFolderLists) { list ->
-                ListCard(
-                    list = list,
-                    onClick = onListClick,
-                    onDelete = onDeleteList,
-                    onToggleFavorite = onToggleFavorite,
-                    allFolders = allFolders,
-                    onMoveListToFolder = onMoveListToFolder
-                )
+            items(noFolderLists, key = { it.listId }) { list ->
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(animationSpec = tween(300)) + 
+                            expandVertically(animationSpec = tween(300)) +
+                            scaleIn(initialScale = 0.8f, animationSpec = tween(300)),
+                    exit = fadeOut(animationSpec = tween(200)) + 
+                           shrinkVertically(animationSpec = tween(200)) +
+                           scaleOut(targetScale = 0.8f, animationSpec = tween(200))
+                ) {
+                    ListCard(
+                        list = list,
+                        onClick = onListClick,
+                        onDelete = onDeleteList,
+                        onToggleFavorite = onToggleFavorite,
+                        allFolders = allFolders,
+                        onMoveListToFolder = onMoveListToFolder
+                    )
+                }
             }
         }
     }
@@ -149,14 +173,29 @@ fun FolderScreen(
             }
         } else {
             LazyColumn {
-                items(lists) { list ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                            .clickable { onListClick(list) },
-                        elevation = CardDefaults.cardElevation(2.dp)
+                items(lists, key = { it.listId }) { list ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(animationSpec = tween(300)) + 
+                                expandVertically(animationSpec = tween(300)) +
+                                scaleIn(initialScale = 0.8f, animationSpec = tween(300)),
+                        exit = fadeOut(animationSpec = tween(200)) + 
+                               shrinkVertically(animationSpec = tween(200)) +
+                               scaleOut(targetScale = 0.8f, animationSpec = tween(200))
                     ) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                                .clickable { onListClick(list) }
+                                .animateContentSize(
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    )
+                                ),
+                            elevation = CardDefaults.cardElevation(2.dp)
+                        ) {
                         Row(
                             modifier = Modifier.padding(16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -188,6 +227,7 @@ fun FolderScreen(
                                 )
                             }
                         }
+                    }
                     }
                 }
             }
@@ -315,7 +355,13 @@ private fun ListCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { onClick(list) },
+            .clickable { onClick(list) }
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
