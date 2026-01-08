@@ -38,4 +38,8 @@ interface HymnDao {
         ORDER BY id ASC
     """)
     fun filterHymns(category: String?, key: String?): Flow<List<HymnEntity>>
+    
+    // Buscar himno por título exacto
+    @Query("SELECT * FROM hymns WHERE LOWER(TRIM(title)) = LOWER(TRIM(:title)) LIMIT 1")
+    suspend fun getHymnByTitle(title: String): HymnEntity?
 }
