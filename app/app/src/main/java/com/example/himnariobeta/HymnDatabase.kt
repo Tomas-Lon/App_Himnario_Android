@@ -13,7 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [HymnEntity::class, HymnListEntity::class, ListHymnCrossRef::class, FolderEntity::class], version = 13, exportSchema = false)
+@Database(entities = [HymnEntity::class, HymnListEntity::class, ListHymnCrossRef::class, FolderEntity::class], version = 15, exportSchema = false)
 abstract class HymnDatabase : RoomDatabase() {
 
     abstract fun hymnDao(): HymnDao
@@ -35,6 +35,7 @@ abstract class HymnDatabase : RoomDatabase() {
                checkAndAddColumn(db, "hymn_lists", "folderId", "INTEGER")
                // 4. Revisar columnas en hymns
                // checkAndAddColumn(db, "hymns", "isFavorite", "INTEGER NOT NULL DEFAULT 0")
+               checkAndAddColumn(db, "hymns", "musical_notation", "TEXT")
                // 5. Revisar columna position en list_hymn_cross_ref
                checkAndAddColumn(db, "list_hymn_cross_ref", "position", "INTEGER NOT NULL DEFAULT 0")
                // 6. Crear tabla de carpetas si no existe
@@ -77,6 +78,59 @@ abstract class HymnDatabase : RoomDatabase() {
                         prepopulateDatabase(database)
                     }
                 }
+            }
+        }
+        
+        // Migración 13 -> 14: Agregar columna musical_notation para acordes
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                checkAndAddColumn(db, "hymns", "musical_notation", "TEXT")
+            }
+        }
+        
+        // Migración 14 -> 15: Insertar datos de prueba para modo músicos
+        val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Himno: "Cuan gloriosa sera la mañana"
+                db.execSQL("""
+                    UPDATE hymns 
+                    SET musical_key = 'SOL',
+                        musical_notation = '	I        IV      I
+Cuan Gloriosa será la mañana,
+	  IV    V           I
+Cuando venga Jesús el Salvador;
+	IV    V              I     vi
+Las naciones unidas como hermanas,
+     V		IV       I
+Bienvenida, daremos al Señor.'
+                    WHERE id = 64 OR LOWER(TRIM(title)) LIKE '%cuan gloriosa%'
+                """)
+                
+                // Más himnos de ejemplo si existen
+                db.execSQL("""
+                    UPDATE hymns 
+                    SET musical_key = 'DO',
+                        musical_notation = '    I       V      vi
+Alabad a Jehová
+    IV      I       V
+Porque Él es bueno'
+                    WHERE LOWER(TRIM(title)) LIKE '%alabad a jehová%' 
+                       OR LOWER(TRIM(title)) LIKE '%alabad a jehova%'
+                """)
+                
+                db.execSQL("""
+                    UPDATE hymns 
+                    SET musical_key = 'RE',
+                        musical_notation = '  I              IV        I
+Hay poder, poder, sin igual poder
+     IV          I           V
+En Jesús quien murió
+  I              IV        I
+Hay poder, poder, sin igual poder
+     IV     V         I
+En la sangre que Él vertió'
+                    WHERE LOWER(TRIM(title)) LIKE '%hay poder%'
+                """)
             }
         }
         
@@ -237,6 +291,8 @@ abstract class HymnDatabase : RoomDatabase() {
                         MIGRATION_8_11,
                         MIGRATION_7_11,
                         MIGRATION_12_13,
+                        MIGRATION_13_14,
+                        MIGRATION_14_15,
                         // Mantenemos otras rutas antiguas mapeadas a la nueva lógica
                         object : Migration(6, 11) { override fun migrate(db: SupportSQLiteDatabase) { ensureSchema(db) } },
                         object : Migration(5, 11) { override fun migrate(db: SupportSQLiteDatabase) { ensureSchema(db) } }

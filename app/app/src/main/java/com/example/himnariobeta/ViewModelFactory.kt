@@ -23,6 +23,9 @@ class HymnViewModelFactory(
             modelClass.isAssignableFrom(FilterViewModel::class.java) -> {
                 FilterViewModel(repository) as T
             }
+            modelClass.isAssignableFrom(MusicianViewModel::class.java) -> {
+                MusicianViewModel(repository) as T
+            }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
     }

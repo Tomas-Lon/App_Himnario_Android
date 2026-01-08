@@ -13,5 +13,6 @@ data class HymnEntity(
     val numero: Int? = null,
     val category: String? = null,
     val musical_key: String? = null,
+    val musical_notation: String? = null, // Acordes con grados romanos (I, IV, V, vi, etc.)
     // val isFavorite: Boolean = false
 )

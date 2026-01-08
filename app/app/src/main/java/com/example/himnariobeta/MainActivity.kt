@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,6 +61,7 @@ import com.example.himnariobeta.components.CreateListDialog
 import com.example.himnariobeta.components.HymnList
 import com.example.himnariobeta.screens.FilterScreen
 import com.example.himnariobeta.screens.ListDetailScreen
+import com.example.himnariobeta.screens.MusicianScreen
 import com.example.himnariobeta.ui.theme.HimnarioBetaTheme
 
 
@@ -94,6 +96,7 @@ fun HymnApp() {
     val homeViewModel: HomeViewModel = viewModel(factory = viewModelFactory)
     val listsViewModel: ListsViewModel = viewModel(factory = viewModelFactory)
     val filterViewModel: FilterViewModel = viewModel(factory = viewModelFactory)
+    val musicianViewModel: MusicianViewModel = viewModel(factory = viewModelFactory)
 
     val navController = rememberNavController()
     val currentRoute =
@@ -205,7 +208,7 @@ fun HymnApp() {
                             )
                         }
                     }
-                    if (selectedList == null && selectedFolder == null && currentRoute != Screen.Filters.route && currentRoute != Screen.Lists.route) {
+                    if (selectedList == null && selectedFolder == null && currentRoute != Screen.Filters.route && currentRoute != Screen.Lists.route && currentRoute != Screen.Musicians.route) {
                         if (isSearchActive) {
                             IconButton(onClick = { homeViewModel.setSearchActive(false) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Cerrar búsqueda")
@@ -254,6 +257,19 @@ fun HymnApp() {
                         selected = currentRoute == Screen.Filters.route,
                         onClick = {
                             navController.navigate(Screen.Filters.route) {
+                                popUpTo(Screen.Home.route) { inclusive = false }
+                                launchSingleTop = true
+                            }
+                            listsViewModel.selectList(null)
+                            listsViewModel.selectFolder(null)
+                        }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.Star, contentDescription = "Músicos") },
+                        label = { Text("Músicos") },
+                        selected = currentRoute == Screen.Musicians.route,
+                        onClick = {
+                            navController.navigate(Screen.Musicians.route) {
                                 popUpTo(Screen.Home.route) { inclusive = false }
                                 launchSingleTop = true
                             }
@@ -434,6 +450,10 @@ fun HymnApp() {
 
             composable(Screen.Filters.route) {
                 FilterScreen(viewModel = filterViewModel)
+            }
+
+            composable(Screen.Musicians.route) {
+                MusicianScreen(viewModel = musicianViewModel)
             }
         }
     }
