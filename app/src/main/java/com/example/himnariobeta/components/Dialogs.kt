@@ -30,21 +30,17 @@ import androidx.compose.ui.unit.dp
 import com.example.himnariobeta.FolderEntity
 import com.example.himnariobeta.HymnListEntity
 
-/* ---------------------------------------------------
- *  Crear Carpeta
- * --------------------------------------------------- */
-
 @Composable
 fun CreateFolderDialog(
     initialName: String = "",
     initialDesc: String? = null,
-    title: String = "Nueva carpeta",
+    title: String = "Nueva Carpeta",
     confirmText: String = "Crear",
     onDismiss: () -> Unit,
     onConfirm: (String, String?) -> Unit
 ) {
     var name by remember { mutableStateOf(initialName) }
-    var desc by remember { mutableStateOf(initialDesc.orEmpty()) }
+    var desc by remember { mutableStateOf(initialDesc ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -61,15 +57,12 @@ fun CreateFolderDialog(
                 OutlinedTextField(
                     value = desc,
                     onValueChange = { desc = it },
-                    label = { Text("Descripción (opcional)") }
+                    label = { Text("Descripción (Opcional)") }
                 )
             }
         },
         confirmButton = {
-            Button(
-                onClick = { onConfirm(name, desc.ifBlank { null }) },
-                enabled = name.isNotBlank()
-            ) {
+            Button(onClick = { onConfirm(name, desc.ifBlank { null }) }, enabled = name.isNotBlank()) {
                 Text(confirmText)
             }
         },
@@ -81,21 +74,17 @@ fun CreateFolderDialog(
     )
 }
 
-/* ---------------------------------------------------
- *  Crear Lista
- * --------------------------------------------------- */
-
 @Composable
 fun CreateListDialog(
     initialName: String = "",
     initialDesc: String? = null,
-    title: String = "Nueva lista",
+    title: String = "Nueva Lista",
     confirmText: String = "Crear",
     onDismiss: () -> Unit,
     onConfirm: (String, String?) -> Unit
 ) {
     var name by remember { mutableStateOf(initialName) }
-    var desc by remember { mutableStateOf(initialDesc.orEmpty()) }
+    var desc by remember { mutableStateOf(initialDesc ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -112,15 +101,12 @@ fun CreateListDialog(
                 OutlinedTextField(
                     value = desc,
                     onValueChange = { desc = it },
-                    label = { Text("Descripción (opcional)") }
+                    label = { Text("Comentario / Descripción (Opcional)") }
                 )
             }
         },
         confirmButton = {
-            Button(
-                onClick = { onConfirm(name, desc.ifBlank { null }) },
-                enabled = name.isNotBlank()
-            ) {
+            Button(onClick = { onConfirm(name, desc.ifBlank { null }) }, enabled = name.isNotBlank()) {
                 Text(confirmText)
             }
         },
@@ -132,10 +118,6 @@ fun CreateListDialog(
     )
 }
 
-/* ---------------------------------------------------
- *  Agregar Himno a Lista
- * --------------------------------------------------- */
-
 @Composable
 fun AddHymnToListDialog(
     lists: List<HymnListEntity>,
@@ -143,13 +125,16 @@ fun AddHymnToListDialog(
     onDismiss: () -> Unit,
     onListSelected: (HymnListEntity) -> Unit
 ) {
+    // Filtrar duplicados
     val uniqueLists = lists.distinctBy { it.listId }
     val noFolderLists = uniqueLists.filter { it.folderId == null }
+    
+    // Estado para trackear qué carpetas están expandidas
+var expandedFolders by remember {
+    mutableStateOf<Set<Int>>(emptySet())
+}
 
-    var expandedFolders by remember {
-        mutableStateOf<Set<Int>>(emptySet())
-    }
-
+    
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Agregar a lista") },
@@ -158,33 +143,29 @@ fun AddHymnToListDialog(
                 Text("No hay listas disponibles. Crea una lista primero.")
             } else {
                 LazyColumn {
-
+                    // Carpetas con sus listas
                     folders.forEach { folder ->
-                        val listsInFolder =
-                            uniqueLists.filter { it.folderId == folder.folderId }
-
+                        val listsInFolder = uniqueLists.filter { it.folderId == folder.folderId }
+                        
+                        // Header de carpeta
                         item(key = folder.folderId) {
                             val isExpanded = expandedFolders.contains(folder.folderId)
-
+                            
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        expandedFolders =
-                                            if (isExpanded) {
-                                                expandedFolders - folder.folderId
-                                            } else {
-                                                expandedFolders + folder.folderId
-                                            }
+                                        expandedFolders = if (isExpanded) {
+                                            expandedFolders.minus(folder.folderId)
+                                        } else {
+                                            expandedFolders.plus(folder.folderId)
+                                        }
                                     }
                                     .padding(vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    imageVector = if (isExpanded)
-                                        Icons.Default.KeyboardArrowDown
-                                    else
-                                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                     contentDescription = null
                                 )
                                 Text(
@@ -194,7 +175,8 @@ fun AddHymnToListDialog(
                                 )
                             }
                         }
-
+                        
+                        // Listas dentro de la carpeta (solo si está expandida)
                         if (expandedFolders.contains(folder.folderId)) {
                             items(listsInFolder) { list ->
                                 TextButton(
@@ -208,7 +190,8 @@ fun AddHymnToListDialog(
                             }
                         }
                     }
-
+                    
+                    // Listas sin carpeta
                     if (noFolderLists.isNotEmpty()) {
                         item {
                             Text(

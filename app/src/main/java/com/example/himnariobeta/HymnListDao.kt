@@ -55,7 +55,15 @@ interface HymnListDao {
         SELECT * FROM hymns 
         INNER JOIN list_hymn_cross_ref ON hymns.id = list_hymn_cross_ref.hymnId 
         WHERE list_hymn_cross_ref.listId = :listId 
-        AND (:searchQuery IS NULL OR hymns.title LIKE '%' || :searchQuery || '%' OR hymns.lyrics LIKE '%' || :searchQuery || '%')
+        AND (:searchQuery IS NULL 
+            OR LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                hymns.title, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','a'), 'É','e'), 'Í','i'), 'Ó','o'), 'Ú','u'), 'ñ','n'))
+                LIKE '%' || LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                :searchQuery, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','a'), 'É','e'), 'Í','i'), 'Ó','o'), 'Ú','u'), 'ñ','n')) || '%'
+            OR LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                hymns.lyrics, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','a'), 'É','e'), 'Í','i'), 'Ó','o'), 'Ú','u'), 'ñ','n'))
+                LIKE '%' || LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                :searchQuery, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','a'), 'É','e'), 'Í','i'), 'Ó','o'), 'Ú','u'), 'ñ','n')) || '%')
         ORDER BY list_hymn_cross_ref.position ASC, hymns.id ASC
     """)
     fun getHymnsForList(listId: Int, searchQuery: String? = null): Flow<List<HymnEntity>>

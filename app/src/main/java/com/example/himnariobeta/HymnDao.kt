@@ -13,8 +13,20 @@ interface HymnDao {
     @Query("SELECT * FROM hymns ORDER BY id ASC")
     fun getAllHymns(): Flow<List<HymnEntity>>
 
-    // Buscar por título, letra o ID
-    @Query("SELECT * FROM hymns WHERE title LIKE '%' || :query || '%' OR lyrics LIKE '%' || :query || '%' OR CAST(id AS TEXT) LIKE '%' || :query || '%' ORDER BY id ASC")
+    // Buscar por título, letra o ID (ignora tildes y diacríticos)
+    @Query("""
+        SELECT * FROM hymns 
+        WHERE LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            title, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','a'), 'É','e'), 'Í','i'), 'Ó','o'), 'Ú','u'), 'ñ','n'))
+            LIKE '%' || LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            :query, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','a'), 'É','e'), 'Í','i'), 'Ó','o'), 'Ú','u'), 'ñ','n')) || '%'
+        OR LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            lyrics, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','a'), 'É','e'), 'Í','i'), 'Ó','o'), 'Ú','u'), 'ñ','n'))
+            LIKE '%' || LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            :query, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','a'), 'É','e'), 'Í','i'), 'Ó','o'), 'Ú','u'), 'ñ','n')) || '%'
+        OR CAST(id AS TEXT) LIKE '%' || :query || '%' 
+        ORDER BY id ASC
+    """)
     fun searchHymns(query: String): Flow<List<HymnEntity>>
 
     // Insertar un himno (útil si necesitaras restaurar datos)
@@ -30,12 +42,25 @@ interface HymnDao {
     suspend fun updateNote(hymnId: Int, note: String)
 
     // Filtro dinámico por Categoría y Nota Musical
-    // Si el parámetro es NULL, esa parte del filtro se ignora, permitiendo filtrar solo por uno, por los dos, o por ninguno.
+    // Convierte tonalidades españolas a americanas antes de comparar
     @Query("""
         SELECT * FROM hymns 
         WHERE (:category IS NULL OR category = :category) 
-        AND (:key IS NULL OR musical_key = :key)
+        AND (:key IS NULL OR 
+            musical_key = :key OR
+            (musical_key = 'DO' AND :key = 'C') OR
+            (musical_key = 'RE' AND :key = 'D') OR
+            (musical_key = 'MI' AND :key = 'E') OR
+            (musical_key = 'FA' AND :key = 'F') OR
+            (musical_key = 'SOL' AND :key = 'G') OR
+            (musical_key = 'LA' AND :key = 'A') OR
+            (musical_key = 'SI' AND :key = 'B')
+        )
         ORDER BY id ASC
     """)
     fun filterHymns(category: String?, key: String?): Flow<List<HymnEntity>>
+    
+    // Buscar himno por título exacto
+    @Query("SELECT * FROM hymns WHERE LOWER(TRIM(title)) = LOWER(TRIM(:title)) LIMIT 1")
+    suspend fun getHymnByTitle(title: String): HymnEntity?
 }

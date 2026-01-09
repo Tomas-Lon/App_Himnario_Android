@@ -41,7 +41,7 @@ class FilterViewModel(
     val keyMenuExpanded: StateFlow<Boolean> = _keyMenuExpanded.asStateFlow()
     
     // Opciones disponibles
-    val categories = listOf("Adoración", "Alabanza", "Himno", "Cántico")
+    val categories = listOf("ADORACION", "ALABANZA")
     val musicalKeys = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
     
     // ==================== ACCIONES ====================

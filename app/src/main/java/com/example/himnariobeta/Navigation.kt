@@ -7,6 +7,7 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Lists : Screen("lists")
     object Filters : Screen("filters")
+    object Musicians : Screen("musicians")
     object ListDetail : Screen("list_detail/{listId}") {
         fun createRoute(listId: Int) = "list_detail/$listId"
         const val ARG_LIST_ID = "listId"
@@ -24,4 +25,5 @@ object MainDestinations {
     const val HOME_ROUTE = "home"
     const val LISTS_ROUTE = "lists"
     const val FILTERS_ROUTE = "filters"
+    const val MUSICIANS_ROUTE = "musicians"
 }
