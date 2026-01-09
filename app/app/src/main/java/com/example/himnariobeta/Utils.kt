@@ -1,8 +1,20 @@
 package com.example.himnariobeta
 
+import java.text.Normalizer
+
 /**
  * Funciones de utilidad compartidas en la aplicación
  */
+
+/**
+ * Normaliza texto eliminando tildes y diacríticos para búsquedas
+ * "José María" -> "jose maria"
+ */
+fun String.normalizeForSearch(): String {
+    return Normalizer.normalize(this, Normalizer.Form.NFD)
+        .replace("\\p{M}".toRegex(), "")
+        .lowercase()
+}
 
 /**
  * Limpia el texto de caracteres no válidos y espacios en blanco

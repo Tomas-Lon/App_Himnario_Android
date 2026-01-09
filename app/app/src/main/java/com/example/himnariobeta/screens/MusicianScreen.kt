@@ -39,22 +39,22 @@ fun MusicianScreen(viewModel: MusicianViewModel) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isSearchActive by viewModel.isSearchActive.collectAsState()
     
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Modo Músicos", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
+    Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+        Text("Modo Músicos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "Selecciona una tonalidad y visualiza los acordes transpuestos automáticamente",
             style = MaterialTheme.typography.bodySmall, 
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         
         KeySelector(selectedKey, viewModel.availableKeys, 
             { viewModel.setSelectedKey(it) }, { viewModel.resetToOriginalKey() })
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider()
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         
         if (isSearchActive) {
             OutlinedTextField(
@@ -69,7 +69,7 @@ fun MusicianScreen(viewModel: MusicianViewModel) {
                     } 
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
         }
         
         Row(
@@ -133,118 +133,162 @@ fun MusicianScreen(viewModel: MusicianViewModel) {
 @Composable
 fun KeySelector(selectedKey: String?, availableKeys: List<String>,
     onKeySelected: (String) -> Unit, onResetToOriginal: () -> Unit) {
+    var showKeysDialog by remember { mutableStateOf(false) }
+    
     Column {
-        // Sección 1: Nota Original / Transpuesto
+        // Dividido en 2: mensaje y botones
         Surface(
             color = if (selectedKey == null) 
                 MaterialTheme.colorScheme.tertiaryContainer 
             else 
                 MaterialTheme.colorScheme.primaryContainer,
-            shape = MaterialTheme.shapes.medium,
+            shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Parte 1: Mensaje de tonalidad
                 Row(
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = null,
-                        modifier = Modifier.size(if (selectedKey == null) 24.dp else 32.dp),
+                        modifier = Modifier.size(20.dp),
                         tint = if (selectedKey == null) 
                             MaterialTheme.colorScheme.onTertiaryContainer 
                         else 
                             MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (selectedKey == null) "Nota Original" else "¡Transpuesto!",
-                            style = if (selectedKey == null) 
-                                MaterialTheme.typography.labelSmall 
-                            else 
-                                MaterialTheme.typography.labelMedium,
-                            color = if (selectedKey == null) 
-                                MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
-                            else
-                                MaterialTheme.colorScheme.onPrimaryContainer,
-                            fontWeight = if (selectedKey == null) FontWeight.Normal else FontWeight.Bold
-                        )
-                        Text(
-                            text = if (selectedKey == null) 
-                                "Usando tonalidad original de cada himno" 
-                            else 
-                                "Todos los himnos transpuestos a: $selectedKey",
-                            style = if (selectedKey == null) 
-                                MaterialTheme.typography.titleMedium 
-                            else 
-                                MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = if (selectedKey == null) 
-                                MaterialTheme.colorScheme.onTertiaryContainer
-                            else
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
+                    Text(
+                        text = if (selectedKey == null) 
+                            "Tonalidad original" 
+                        else 
+                            "¡Transpuesto! Todos a: $selectedKey",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (selectedKey == null) 
+                            MaterialTheme.colorScheme.onTertiaryContainer
+                        else
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
                 
-                if (selectedKey != null) {
-                    FilledTonalButton(
-                        onClick = onResetToOriginal,
-                        modifier = Modifier.fillMaxWidth()
-                    ) { 
-                        Text("Restaurar a tonalidad original") 
-                    }
-                }
-            }
-        }
-        
-        Spacer(Modifier.height(16.dp))
-        HorizontalDivider()
-        Spacer(Modifier.height(16.dp))
-        
-        // Sección 2: Transportar a
-        Text(
-            text = "Transportar a:",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(Modifier.height(12.dp))
-        
-        // Grid de tonalidades
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            availableKeys.chunked(4).forEach { rowKeys ->
+                // Parte 2: Botones de acción
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    rowKeys.forEach { key ->
-                        val keySimple = key.substringBefore("/")
-                        FilterChip(
-                            selected = selectedKey == keySimple,
-                            onClick = { onKeySelected(keySimple) },
-                            label = { 
-                                Text(
-                                    text = key,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = if (selectedKey == keySimple) FontWeight.Bold else FontWeight.Medium
-                                )
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
+                    FilledTonalButton(
+                        onClick = { showKeysDialog = true },
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                    ) { 
+                        Text(
+                            text = "Transportar a",
+                            style = MaterialTheme.typography.labelMedium
+                        ) 
                     }
-                    // Rellenar espacios vacíos si la fila no está completa
-                    repeat(4 - rowKeys.size) {
-                        Spacer(modifier = Modifier.weight(1f))
+                    
+                    if (selectedKey != null) {
+                        TextButton(
+                            onClick = onResetToOriginal,
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+                        ) { 
+                            Text(
+                                text = "Restaurar",
+                                style = MaterialTheme.typography.labelMedium
+                            ) 
+                        }
                     }
                 }
             }
         }
+    }
+    
+    // Diálogo con cuadrícula 4x4 de tonalidades
+    if (showKeysDialog) {
+        AlertDialog(
+            onDismissRequest = { showKeysDialog = false },
+            title = { 
+                Text(
+                    text = "Transportar a:",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                ) 
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    availableKeys.chunked(4).forEach { rowKeys ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            rowKeys.forEach { key ->
+                                val keySimple = key.substringBefore("/")
+                                val isSelected = selectedKey == keySimple
+                                
+                                Button(
+                                    onClick = {
+                                        onKeySelected(keySimple)
+                                        showKeysDialog = false
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(56.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isSelected) 
+                                            MaterialTheme.colorScheme.primaryContainer 
+                                        else 
+                                            MaterialTheme.colorScheme.surfaceVariant,
+                                        contentColor = if (isSelected) 
+                                            MaterialTheme.colorScheme.onPrimaryContainer 
+                                        else 
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    ),
+                                    shape = MaterialTheme.shapes.medium,
+                                    contentPadding = PaddingValues(8.dp)
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = keySimple,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold
+                                        )
+                                        if (key.contains("/")) {
+                                            Text(
+                                                text = key.substringAfter("/"),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Normal
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            // Rellenar espacios vacíos si la fila no está completa
+                            repeat(4 - rowKeys.size) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showKeysDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 

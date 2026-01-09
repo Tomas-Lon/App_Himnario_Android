@@ -13,8 +13,20 @@ interface HymnDao {
     @Query("SELECT * FROM hymns ORDER BY id ASC")
     fun getAllHymns(): Flow<List<HymnEntity>>
 
-    // Buscar por título, letra o ID
-    @Query("SELECT * FROM hymns WHERE title LIKE '%' || :query || '%' OR lyrics LIKE '%' || :query || '%' OR CAST(id AS TEXT) LIKE '%' || :query || '%' ORDER BY id ASC")
+    // Buscar por título, letra o ID (ignora tildes y diacríticos)
+    @Query("""
+        SELECT * FROM hymns 
+        WHERE LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            title, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','A'), 'É','E'), 'Í','I'), 'Ó','O'), 'Ú','U'))
+            LIKE '%' || LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            :query, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','A'), 'É','E'), 'Í','I'), 'Ó','O'), 'Ú','U')) || '%'
+        OR LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            lyrics, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','A'), 'É','E'), 'Í','I'), 'Ó','O'), 'Ú','U'))
+            LIKE '%' || LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            :query, 'á','a'), 'é','e'), 'í','i'), 'ó','o'), 'ú','u'), 'Á','A'), 'É','E'), 'Í','I'), 'Ó','O'), 'Ú','U')) || '%'
+        OR CAST(id AS TEXT) LIKE '%' || :query || '%' 
+        ORDER BY id ASC
+    """)
     fun searchHymns(query: String): Flow<List<HymnEntity>>
 
     // Insertar un himno (útil si necesitaras restaurar datos)

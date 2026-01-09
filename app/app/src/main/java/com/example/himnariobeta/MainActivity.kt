@@ -16,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
@@ -146,9 +148,20 @@ fun HymnApp() {
                         isSearchActive -> OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { homeViewModel.updateSearchQuery(it) },
-                            placeholder = { Text("Buscar...") },
+                            placeholder = { 
+                                Text(
+                                    "Buscar himnos (ignora tildes)...",
+                                    style = MaterialTheme.typography.bodyMedium
+                                ) 
+                            },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodyLarge,
+                            shape = MaterialTheme.shapes.medium,
+                            colors = androidx.compose.material3.TextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
                         )
                         else -> {
                             val titleText = when (currentRoute) {
@@ -172,6 +185,33 @@ fun HymnApp() {
                     }
                 },
                 actions = {
+                    // Botones de edición y eliminación para carpetas
+                    if (selectedFolder != null) {
+                        var showEditDialog by remember { mutableStateOf(false) }
+                        
+                        IconButton(onClick = { showEditDialog = true }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Editar carpeta")
+                        }
+                        IconButton(onClick = { 
+                            listsViewModel.deleteFolder(selectedFolder!!)
+                            listsViewModel.selectFolder(null)
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar carpeta")
+                        }
+                        
+                        if (showEditDialog) {
+                            EditFolderDialog(
+                                initialName = selectedFolder!!.name,
+                                initialDesc = selectedFolder!!.description,
+                                onDismiss = { showEditDialog = false },
+                                onConfirm = { name, desc ->
+                                    listsViewModel.updateFolder(selectedFolder!!, name, desc)
+                                    showEditDialog = false
+                                }
+                            )
+                        }
+                    }
+                    
                     if (currentRoute == Screen.Lists.route && selectedList == null && selectedFolder == null) {
                         var menuExpanded by remember { mutableStateOf(false) }
                         IconButton(onClick = { menuExpanded = true }) {

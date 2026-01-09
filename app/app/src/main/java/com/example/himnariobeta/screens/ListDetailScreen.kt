@@ -16,10 +16,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -95,102 +97,193 @@ fun ListDetailScreen(
     var currentDragIndex by remember { mutableStateOf<Int?>(null) }
     
     val canReorder = hymnsInList.size > 1
+    
+    var showSearchInList by remember { mutableStateOf(false) }
+    var showAddToList by remember { mutableStateOf(false) }
+    
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        // Header dividido en 2 áreas: información y botones
+        androidx.compose.material3.Surface(
+            color = MaterialTheme.colorScheme.primaryContainer,
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            tonalElevation = 2.dp
         ) {
-             Text(
-                 text = "${hymnsInList.size} himnos",
-                 style = MaterialTheme.typography.labelMedium,
-                 modifier = Modifier.padding(start = 8.dp)
-             )
-
-             Box {
-                 IconButton(onClick = { menuExpanded = true }) {
-                     Icon(Icons.Default.MoreVert, contentDescription = "Opciones de lista")
-                 }
-                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                     DropdownMenuItem(
-                         text = { Text("Editar Nombre/Comentario") },
-                         onClick = { showRenameDialog = true; menuExpanded = false },
-                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
-                     )
-                     DropdownMenuItem(
-                         text = { Text("Duplicar Lista") },
-                         onClick = { onDuplicateList(); menuExpanded = false },
-                         leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) }
-                     )
-                     DropdownMenuItem(
-                         text = { Text("Compartir Lista (TXT)") },
-                         onClick = {
-                             shareListAsText(context, list, hymnsInList)
-                             menuExpanded = false
-                         },
-                         leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
-                     )
-                     DropdownMenuItem(
-                         text = { Text("Compartir Lista (PDF)") },
-                         onClick = {
-                             exportListAsPdf(context, list, hymnsInList)
-                             menuExpanded = false
-                         },
-                         leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
-                     )
-                     DropdownMenuItem(
-                         text = { Text("Vaciar Lista") },
-                         onClick = { showDeleteAllDialog = true; menuExpanded = false },
-                         leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
-                     )
-                 }
-             }
+            Row(
+                modifier = Modifier.padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Parte 1: Información de la lista
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.List,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = "${hymnsInList.size} himnos",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                
+                // Parte 2: Botones de acción
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    androidx.compose.material3.FilledTonalButton(
+                        onClick = { showSearchInList = !showSearchInList },
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    
+                    androidx.compose.material3.FilledTonalButton(
+                        onClick = { showAddToList = !showAddToList },
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Más opciones"
+                        )
+                    }
+                }
+            }
+        }
+        
+        DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+            DropdownMenuItem(
+                text = { Text("Editar Nombre/Comentario") },
+                onClick = { showRenameDialog = true; menuExpanded = false },
+                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Duplicar Lista") },
+                onClick = { onDuplicateList(); menuExpanded = false },
+                leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Compartir Lista (TXT)") },
+                onClick = {
+                    shareListAsText(context, list, hymnsInList)
+                    menuExpanded = false
+                },
+                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Compartir Lista (PDF)") },
+                onClick = {
+                    exportListAsPdf(context, list, hymnsInList)
+                    menuExpanded = false
+                },
+                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Vaciar Lista") },
+                onClick = { showDeleteAllDialog = true; menuExpanded = false },
+                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
+            )
         }
 
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            placeholder = { Text("Buscar dentro de esta lista...") },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            trailingIcon = {
-                 if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Default.Close, contentDescription = "Limpiar") }
-                }
-            }
-        )
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-        OutlinedTextField(
-            value = searchToAddQuery,
-            onValueChange = { searchToAddQuery = it },
-            placeholder = { Text("Buscar himno para AGREGAR...") },
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
-            trailingIcon = {
-                if (searchToAddQuery.isNotEmpty()) {
-                    IconButton(onClick = { searchToAddQuery = "" }) { Icon(Icons.Default.Close, contentDescription = "Limpiar") }
-                }
-            }
-        )
+        // Campos de búsqueda expandibles
+        if (showSearchInList) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Buscar en esta lista", style = MaterialTheme.typography.bodySmall) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                     if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Default.Close, contentDescription = "Limpiar") }
+                    }
+                },
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium
+            )
+        }
+        
+        if (showAddToList) {
+            OutlinedTextField(
+                value = searchToAddQuery,
+                onValueChange = { searchToAddQuery = it },
+                placeholder = { Text("Agregar himno a la lista", style = MaterialTheme.typography.bodySmall) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
+                trailingIcon = {
+                    if (searchToAddQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchToAddQuery = "" }) { Icon(Icons.Default.Close, contentDescription = "Limpiar") }
+                    }
+                },
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium
+            )
+        }
+        
+        if (showSearchInList || showAddToList) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+        }
 
         if (searchToAddQuery.isNotEmpty()) {
-            LazyColumn {
+            LazyColumn(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                 items(globalSearchResults) { hymn ->
-                    Card(modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {
-                        scope.launch {
-                            val safeId = hymn.id ?: 0
-                            repository.addHymnToList(list.listId, safeId)
-                            searchToAddQuery = ""
-                        }
-                    }) {
-                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(imageVector = PlaylistAddIcon, contentDescription = "Agregar a la lista")
-                            Spacer(modifier = Modifier.padding(4.dp))
+                    androidx.compose.material3.Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clickable {
+                                scope.launch {
+                                    val safeId = hymn.id ?: 0
+                                    repository.addHymnToList(list.listId, safeId)
+                                    searchToAddQuery = ""
+                                }
+                            },
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = MaterialTheme.shapes.medium,
+                        tonalElevation = 2.dp
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = PlaylistAddIcon,
+                                contentDescription = "Agregar a la lista",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                             val safeId = hymn.id ?: 0
                             val safeTitle = hymn.title ?: "Sin título"
-                            Text(text = "${safeId}. ${safeTitle}")
+                            Text(
+                                text = "${safeId}. ${safeTitle}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
                         }
                     }
                 }

@@ -142,28 +142,7 @@ fun FolderScreen(
     onEditFolder: (FolderEntity, String, String?) -> Unit,
     onMoveListToFolder: (HymnListEntity, FolderEntity?) -> Unit
 ) {
-    var showEditDialog by remember { mutableStateOf(false) }
-
     Column(modifier = Modifier.fillMaxSize()) {
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(folder.name, style = MaterialTheme.typography.headlineSmall)
-            Row {
-                IconButton(onClick = { showEditDialog = true }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar carpeta")
-                }
-                IconButton(onClick = { onDeleteFolder(folder) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar carpeta")
-                }
-            }
-        }
-
         if (lists.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
@@ -172,7 +151,7 @@ fun FolderScreen(
                 )
             }
         } else {
-            LazyColumn {
+            LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
                 items(lists, key = { "folder_${folder.folderId}_${it.listId}" }) { list ->
                     AnimatedVisibility(
                         visible = true,
@@ -183,67 +162,76 @@ fun FolderScreen(
                                shrinkVertically(animationSpec = tween(200)) +
                                scaleOut(targetScale = 0.8f, animationSpec = tween(200))
                     ) {
-                        Card(
+                        Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp)
-                                .clickable { onListClick(list) }
-                                .animateContentSize(
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessLow
-                                    )
-                                ),
-                            elevation = CardDefaults.cardElevation(2.dp)
+                                .padding(vertical = 6.dp)
+                                .clickable { onListClick(list) },
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = MaterialTheme.shapes.medium,
+                            tonalElevation = 2.dp
                         ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(list.name, style = MaterialTheme.typography.titleMedium)
-                                list.description?.let {
-                                    Text(it, style = MaterialTheme.typography.bodySmall)
-                                }
-                            }
-                            Row {
-                                IconButton(onClick = { onDeleteList(list) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Eliminar lista")
-                                }
-                                IconButton(onClick = { onToggleFavorite(list) }) {
-                                    Icon(
-                                        if (list.isFavorite)
-                                            Icons.Default.Favorite
-                                        else
-                                            Icons.Default.FavoriteBorder,
-                                        contentDescription = "Favorito"
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Text(
+                                        text = list.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
+                                    list.description?.let {
+                                        Text(
+                                            text = it,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
-                                FolderMoveDropdown(
-                                    list = list,
-                                    allFolders = allFolders,
-                                    onMove = { onMoveListToFolder(list, it) }
-                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    IconButton(
+                                        onClick = { onToggleFavorite(list) },
+                                        modifier = Modifier.size(40.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (list.isFavorite)
+                                                Icons.Default.Favorite
+                                            else
+                                                Icons.Default.FavoriteBorder,
+                                            contentDescription = "Favorito",
+                                            tint = if (list.isFavorite) 
+                                                MaterialTheme.colorScheme.error 
+                                            else 
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    FolderMoveDropdown(
+                                        list = list,
+                                        allFolders = allFolders,
+                                        onMove = { onMoveListToFolder(list, it) }
+                                    )
+                                    IconButton(
+                                        onClick = { onDeleteList(list) },
+                                        modifier = Modifier.size(40.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Eliminar lista",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             }
                         }
-                    }
                     }
                 }
             }
         }
-    }
-
-    if (showEditDialog) {
-        EditFolderDialog(
-            initialName = folder.name,
-            initialDesc = folder.description,
-            onDismiss = { showEditDialog = false },
-            onConfirm = { name, desc ->
-                onEditFolder(folder, name, desc)
-                showEditDialog = false
-            }
-        )
     }
 }
 
@@ -351,41 +339,52 @@ private fun ListCard(
     allFolders: List<FolderEntity>? = null,
     onMoveListToFolder: ((HymnListEntity, FolderEntity?) -> Unit)? = null
 ) {
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .clickable { onClick(list) }
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow
-                )
-            ),
-        elevation = CardDefaults.cardElevation(2.dp)
+            .padding(vertical = 6.dp)
+            .clickable { onClick(list) },
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.medium,
+        tonalElevation = 2.dp
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(list.name, style = MaterialTheme.typography.titleMedium)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = list.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 list.description?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
-            Row {
-                IconButton(onClick = { onDelete(list) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar")
-                }
-                IconButton(onClick = { onToggleFavorite(list) }) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(
+                    onClick = { onToggleFavorite(list) },
+                    modifier = Modifier.size(40.dp)
+                ) {
                     Icon(
-                        if (list.isFavorite)
+                        imageVector = if (list.isFavorite)
                             Icons.Default.Favorite
                         else
                             Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorito"
+                        contentDescription = "Favorito",
+                        tint = if (list.isFavorite) 
+                            MaterialTheme.colorScheme.error 
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 if (allFolders != null && onMoveListToFolder != null) {
@@ -393,6 +392,16 @@ private fun ListCard(
                         list = list,
                         allFolders = allFolders,
                         onMove = { folder -> onMoveListToFolder(list, folder) }
+                    )
+                }
+                IconButton(
+                    onClick = { onDelete(list) },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
